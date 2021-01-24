@@ -1,0 +1,4 @@
+Nagios plugin to check if the next full filesystem check is coming soon.
+
+Author: Wim van Ravesteijn
+
