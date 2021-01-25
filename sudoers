@@ -1,2 +1,2 @@
-nagios ALL=(ALL) NOPASSWD: dumpe2fs -h /dev/*
+nagios ALL=(ALL) NOPASSWD: /sbin/dumpe2fs -h /dev/*
 
