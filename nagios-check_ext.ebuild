@@ -5,7 +5,7 @@ EAPI=7
 
 DESCRIPTION="Nagios plugin to check if the next full filesystem check is coming soon."
 HOMEPAGE="https://github.com/wimvr/nagios-check_ext"
-SRC_URI="https://github.com/wimvr/${PN}/archive/${P}.tgz"
+SRC_URI="https://github.com/wimvr/${PN}/archive/${P}.tar.gz"
 
 LICENSE="Apache-2.0"
 SLOT="0"
