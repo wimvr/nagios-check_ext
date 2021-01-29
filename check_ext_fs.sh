@@ -41,11 +41,12 @@ done
 
 for DISK in `mount | grep -P 'type ext[2-4] ' | cut -d' ' -f1`
 do
-	check_interval=`sudo /sbin/dumpe2fs -h ${DISK} 2>/dev/null | grep 'Check interval:' | grep -oP '\-?[0-9]+' | head -n1`
-	next_check=`sudo /sbin/dumpe2fs -h ${DISK} 2>/dev/null | grep 'Next check after:' | cut -d: -f2- | sed -e 's/^[[:space:]]*//'`
+	dumpe2fs_res=`sudo /sbin/dumpe2fs -h ${DISK} 2>/dev/null`
+	check_interval=`echo "${dumpe2fs_res}" | grep 'Check interval:' | grep -oP '\-?[0-9]+' | head -n1`
+	next_check=`echo "${dumpe2fs_res}" | grep 'Next check after:' | cut -d: -f2- | sed -e 's/^[[:space:]]*//'`
 	days_left=$[(`date -d "${next_check}" '+%s'` - `date '+%s'`) / 60 / 60 / 24]
-	mount_count=`sudo /sbin/dumpe2fs -h ${DISK} 2>/dev/null | grep 'Mount count:' | grep -oP '[0-9]+'`
-	mount_max=`sudo /sbin/dumpe2fs -h ${DISK} 2>/dev/null | grep 'Maximum mount count:' | grep -oP '\-?[0-9]+'`
+	mount_count=`echo "${dumpe2fs_res}" | grep 'Mount count:' | grep -oP '[0-9]+'`
+	mount_max=`echo "${dumpe2fs_res}" | grep 'Maximum mount count:' | grep -oP '\-?[0-9]+'`
 	mounts_left=$[mount_max - mount_count]
 
 	if [ $check_interval -gt 0 ] && [ $days_left -le $CRITICAL_DAYS ]; then

@@ -1,5 +1,6 @@
 * 0.2 (released .....)
   - rename check from check_ext_disks to check_ext_fs to better match what it really does
+  - only call dumpe2fs one time per filesystem and reuse result
 
 * 0.1 (released 26.1.2021)
   - Initial version
