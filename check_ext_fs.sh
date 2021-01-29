@@ -39,6 +39,8 @@ while getopts "w:c:W:C:h" args; do
 	esac
 done
 
+disk_checked_count=0
+disk_ignored_count=0
 for DISK in `mount | grep -P 'type ext[2-4] ' | cut -d' ' -f1`
 do
 	dumpe2fs_res=`sudo /sbin/dumpe2fs -h ${DISK} 2>/dev/null`
@@ -65,7 +67,12 @@ do
 		echo "WARNING - only ${mounts_left} mounts left for ${DISK}"
 		exit 1
 	fi
+	if [ $check_interval -gt 0 ] || [ $mount_max -gt 0 ]; then
+		((disk_checked_count++))
+	else
+		((disk_ignored_count++))
+	fi
 done
 
-echo "OK"
+echo "OK (${disk_checked_count} filesystems checked, ${disk_ignored_count} filesystems ignored)"
 
