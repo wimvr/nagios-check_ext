@@ -17,9 +17,9 @@ BDEPEND=""
 
 src_install() {
 	exeinto /usr/lib64/nagios/plugins/
-	doexe check_ext_disks.sh
+	doexe check_ext_fs.sh
 	insinto /etc/sudoers.d/
-	newins sudoers nagios_check_ext_disks
+	newins sudoers nagios_check_ext_fs
 	dodoc README
 }
 

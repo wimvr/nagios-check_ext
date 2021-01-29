@@ -1,0 +1,6 @@
+* 0.2 (released .....)
+  - rename check from check_ext_disks to check_ext_fs to better match what it really does
+
+* 0.1 (released 26.1.2021)
+  - Initial version
+
