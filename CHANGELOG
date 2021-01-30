@@ -2,6 +2,8 @@
   - rename check from check_ext_disks to check_ext_fs to better match what it really does
   - only call dumpe2fs one time per filesystem and reuse result
   - show filesystem count in status message
+  - mention all problems of higest severity, not only first
+  - verbose output in case of OK status
 
 * 0.1 (released 26.1.2021)
   - Initial version

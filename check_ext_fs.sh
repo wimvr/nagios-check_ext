@@ -4,6 +4,7 @@ WARNING_DAYS=10
 CRITICAL_DAYS=0
 WARNING_COUNT=5
 CRITICAL_COUNT=0
+VERBOSE=0
 
 function help {
 	echo "Usage:"
@@ -13,6 +14,8 @@ function help {
 	echo "Options:"
 	echo "-h"
 	echo "	Print detailed help"
+	echo "-v"
+	echo "  Verbose output (print status of all filesystems in case of OK"
 	echo "-w INTEGER"
 	echo "	Exit with WARNING status if less than INTEGER days before a full check (default: 10)"
 	echo "-c INTEGER"
@@ -24,7 +27,7 @@ function help {
 	exit 0
 }
 
-while getopts "w:c:W:C:h" args; do
+while getopts "w:c:W:C:vh" args; do
 	case $args in
 		h) help
 			;;
@@ -36,12 +39,34 @@ while getopts "w:c:W:C:h" args; do
 			;;
 		C) CRITICAL_COUNT=$OPTARG
 			;;
+		v) VERBOSE=1
+			;;
 	esac
 done
 
+STATUS=0
+STATUS_COUNT=0
+STATUS_MSG=""
+VERBOSE_LOG=""
+
+function register_problem {
+	givenStatus=$1
+	givenMsg=$2
+
+	if [ $givenStatus -gt $STATUS ]; then
+		STATUS=$givenStatus
+		STATUS_COUNT=0
+		STATUS_MSG=""
+	fi
+	if [ $givenStatus -ge $STATUS ]; then
+		((STATUS_COUNT++))
+		STATUS_MSG="${STATUS_MSG}${givenMsg}\n"
+	fi
+}
+
 disk_checked_count=0
 disk_ignored_count=0
-for DISK in `mount | grep -P 'type ext[2-4] ' | cut -d' ' -f1`
+for DISK in `mount | grep -P 'type ext[2-4] ' | cut -d' ' -f1 | sort`
 do
 	dumpe2fs_res=`sudo /sbin/dumpe2fs -h ${DISK} 2>/dev/null`
 	check_interval=`echo "${dumpe2fs_res}" | grep 'Check interval:' | grep -oP '\-?[0-9]+' | head -n1`
@@ -52,27 +77,45 @@ do
 	mounts_left=$[mount_max - mount_count]
 
 	if [ $check_interval -gt 0 ] && [ $days_left -le $CRITICAL_DAYS ]; then
-		echo "CRITICAL - only ${days_left} days left for ${DISK}"
-		exit 2
+		register_problem 2 "only ${days_left} days left for ${DISK}"
 	fi
 	if [ $mount_max -gt 0 ] && [ $mounts_left -le $CRITICAL_COUNT ]; then
-		echo "CRITICAL - only ${mounts_left} mounts left for ${DISK}"
-		exit 2
+		register_problem 2 "only ${mounts_left} mounts left for ${DISK}"
 	fi
 	if [ $check_interval -gt 0 ] && [ $days_left -le $WARNING_DAYS ]; then
-		echo "WARNING - only ${days_left} days left for ${DISK}"
-		exit 1
+		register_problem 1 "only ${days_left} days left for ${DISK}"
 	fi
 	if [ $mount_max -gt 0 ] && [ $mounts_left -le $WARNING_COUNT ]; then
-		echo "WARNING - only ${mounts_left} mounts left for ${DISK}"
-		exit 1
+		register_problem 1 "only ${mounts_left} mounts left for ${DISK}"
 	fi
 	if [ $check_interval -gt 0 ] || [ $mount_max -gt 0 ]; then
+		VERBOSE_LOG="${VERBOSE_LOG}${DISK}: ${days_left} days left; ${mounts_left} mounts left\n"
 		((disk_checked_count++))
 	else
+		VERBOSE_LOG="${VERBOSE_LOG}${DISK}: ignored\n"
 		((disk_ignored_count++))
 	fi
 done
 
-echo "OK (${disk_checked_count} filesystems checked, ${disk_ignored_count} filesystems ignored)"
+if [ $STATUS -eq 0 ]; then
+	echo "OK (${disk_checked_count} filesystems checked, ${disk_ignored_count} filesystems ignored)"
+	if [ $VERBOSE -eq 1 ]; then
+		VERBOSE_LOG=`echo -e "${VERBOSE_LOG}" | sed -e 's/[[:cntrl:]]$//'`
+		echo -e "${VERBOSE_LOG}"
+	fi
+	exit $STATUS
+else
+	if [ $STATUS -eq 1 ]; then
+		echo -n "WARNING"
+	else
+		echo -n "CRITICAL"
+	fi
+	STATUS_MSG=`echo -e "${STATUS_MSG}" | sed -e 's/[[:cntrl:]]$//'`
+	if [ $STATUS_COUNT -eq 1 ]; then
+		echo " - ${STATUS_MSG}"
+	else
+		echo -e " - ${STATUS_COUNT} problems\n${STATUS_MSG}"
+	fi
+	exit $STATUS
+fi
 
