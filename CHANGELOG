@@ -4,6 +4,7 @@
   - show filesystem count in status message
   - mention all problems of higest severity, not only first
   - verbose output in case of OK status
+  - download package with name and version, not only version
 
 * 0.1 (released 26.1.2021)
   - Initial version
