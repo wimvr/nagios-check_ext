@@ -1,3 +1,6 @@
+* 0.3 (released 31.1.2022)
+  - Warning/critical only if days below limit, not almost at limit. This prevents server restarts a day too early.
+
 * 0.2 (released 30.1.2021)
   - rename check from check_ext_disks to check_ext_fs to better match what it really does
   - only call dumpe2fs one time per filesystem and reuse result

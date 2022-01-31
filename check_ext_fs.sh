@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Author: Wim van Ravesteijn
+# Description: Nagios plugin to check if the next full filesystem check is coming soon.
+# Website: https://github.com/wimvr/nagios-check_ext
+
 WARNING_DAYS=10
 CRITICAL_DAYS=0
 WARNING_COUNT=5
@@ -76,13 +80,13 @@ do
 	mount_max=`echo "${dumpe2fs_res}" | grep 'Maximum mount count:' | grep -oP '\-?[0-9]+'`
 	mounts_left=$[mount_max - mount_count]
 
-	if [ $check_interval -gt 0 ] && [ $days_left -le $CRITICAL_DAYS ]; then
+	if [ $check_interval -gt 0 ] && [ $days_left -lt $CRITICAL_DAYS ]; then
 		register_problem 2 "only ${days_left} days left for ${DISK}"
 	fi
 	if [ $mount_max -gt 0 ] && [ $mounts_left -le $CRITICAL_COUNT ]; then
 		register_problem 2 "only ${mounts_left} mounts left for ${DISK}"
 	fi
-	if [ $check_interval -gt 0 ] && [ $days_left -le $WARNING_DAYS ]; then
+	if [ $check_interval -gt 0 ] && [ $days_left -lt $WARNING_DAYS ]; then
 		register_problem 1 "only ${days_left} days left for ${DISK}"
 	fi
 	if [ $mount_max -gt 0 ] && [ $mounts_left -le $WARNING_COUNT ]; then
