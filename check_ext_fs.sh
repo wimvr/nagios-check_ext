@@ -75,7 +75,12 @@ do
 	dumpe2fs_res=`sudo /sbin/dumpe2fs -h ${DISK} 2>/dev/null`
 	check_interval=`echo "${dumpe2fs_res}" | grep 'Check interval:' | grep -oP '\-?[0-9]+' | head -n1`
 	next_check=`echo "${dumpe2fs_res}" | grep 'Next check after:' | cut -d: -f2- | sed -e 's/^[[:space:]]*//'`
-	days_left=$[(`date -d "${next_check}" '+%s'` - `date '+%s'`) / 60 / 60 / 24]
+	seconds_left=$[`date -d "${next_check}" '+%s'` - `date '+%s'`]
+	days_left=$[seconds_left / 60 / 60 / 24]
+	if [ $seconds_left -lt 0 ]; then
+		# Past now, always round up instead of default down. This prevents 0 counting as 2 days (-0.9 - 0.9).
+		days_left=$[days_left - 1]
+	fi
 	mount_count=`echo "${dumpe2fs_res}" | grep 'Mount count:' | grep -oP '[0-9]+'`
 	mount_max=`echo "${dumpe2fs_res}" | grep 'Maximum mount count:' | grep -oP '\-?[0-9]+'`
 	mounts_left=$[mount_max - mount_count]

@@ -1,3 +1,6 @@
+* 0.4 (released 3.2.2022)
+  - Past now, always round up instead of default down. This prevents 0 counting as 2 days (-0.9 - 0.9).
+
 * 0.3 (released 31.1.2022)
   - Warning/critical only if days below limit, not almost at limit. This prevents server restarts a day too early.
 
